@@ -142,6 +142,13 @@
       justify-content: center;
       align-items: center;
     }
+
+    #soundIcon {
+  width: 20px;  /* 아이콘 크기 조절 */
+  height: 20px;
+  pointer-events: none; /* 이미지 클릭 시에도 버튼 이벤트가 발생하도록 */
+  display: block;
+}
     .sound-btn:hover { background-color: rgb(230, 230, 230); }
 
     /* 🔊 [NEW] 볼륨 슬라이더 스타일 */
@@ -318,7 +325,9 @@ width: 100vw !important;
           <option value="restanrant">식당</option>
           <option value="cafe">카페</option>
         </select>
-        <button class="sound-btn" id="soundBtn">🔈</button>
+        <button class="sound-btn" id="soundBtn">
+  <img id="soundIcon" src="on.svg">
+</button>
       </div>
 
       <input type="range" id="volumeSlider" class="volume-slider" min="0" max="1" step="0.01" value="0.5" title="볼륨 조절">
@@ -953,23 +962,23 @@ width: 100vw !important;
         }
     });
 
-    // ==========================================
-    // 🔊 소리 및 볼륨 제어 로직
+   // ==========================================
+    // 🔊 소리 및 볼륨 제어 로직 (SVG 버전)
     // ==========================================
     let currentAudio = null;
     let isSoundOn = true;
     let globalVolume = 0.5; // 기본 볼륨
 
     const soundFiles = {
-        forest: 'forest.mp3',
-        bird: 'bird.mp3',
-        ocean: 'ocean.mp3',
-        fallen_leaves: 'fallen_leaves.mp3',
-        rain: 'rain.mp3',
-       
-        bonfire: 'bonfire.mp3',
-        restanrant: 'restanrant.mp3',
-        cafe: 'cafe.mp3'
+        forest: 'sounds/forest.mp3',
+        bird: 'sounds/bird.mp3',
+        ocean: 'sounds/ocean.mp3',
+        fallen_leaves: 'sounds/fallen_leaves.mp3',
+        rain: 'sounds/rain.mp3',
+        snow: 'sounds/snow.mp3',
+        bonfire: 'sounds/bonfire.mp3',
+        restanrant: 'sounds/restanrant.mp3',
+        cafe: 'sounds/cafe.mp3'
     };
 
     function playSound(soundType) {
@@ -978,61 +987,65 @@ width: 100vw !important;
             currentAudio = null;
         }
         if (!isSoundOn) return;
+        
+        // 경로 확인 및 재생
         if (soundFiles[soundType]) {
             currentAudio = new Audio(soundFiles[soundType]);
             currentAudio.loop = true;
-            currentAudio.volume = globalVolume; // 설정된 볼륨 적용
+            currentAudio.volume = globalVolume; 
             currentAudio.play().catch(err => {
                 console.log('소리 재생 실패:', err);
             });
         }
     }
 
-const soundSelect = document.getElementById('soundSelect');
-soundSelect.addEventListener('change', (e) => {
-if (e.target.value !== 'spring') { // '소리 선택' 옵션이 아닐 때만
-playSound(e.target.value);
-}
-});
+    const soundSelect = document.getElementById('soundSelect');
+    soundSelect.addEventListener('change', (e) => {
+        if (e.target.value !== 'spring') {
+            playSound(e.target.value);
+        }
+    });
 
-// 소리 on/off 버튼 이벤트
-const soundBtn = document.getElementById('soundBtn');
-soundBtn.addEventListener('click', () => {
-isSoundOn = !isSoundOn;
-if (isSoundOn) {
-soundlcon.src = "on.svg";
-soundBtn.style.background = "rgb(240, 240, 240)";
-// 현재 선택된 소리 재생
-if (soundSelect.value !== 'spring') {
-playSound(soundSelect.value);
-}
-} else {
-soundlcon.src = "off.svg";
-soundBtn.style.background = "#e4716a";
-// 소리 정지
-if (currentAudio) {
-currentAudio.pause();
-}
-}
-});
+    // 🔴 중요: 버튼과 이미지 요소를 가져옵니다.
+    const soundBtn = document.getElementById('soundBtn');
+    const soundIcon = document.getElementById('soundIcon'); // HTML에 추가한 img 태그 ID
 
+    // 소리 on/off 버튼 이벤트
+    soundBtn.addEventListener('click', () => {
+        isSoundOn = !isSoundOn;
+        
+        if (isSoundOn) {
+            // [소리 켜짐]
+            soundIcon.src = "on.svg"; // SVG 파일명 변경
+            soundBtn.style.background = "rgb(240, 240, 240)";
+            
+            if (soundSelect.value && soundSelect.value !== '소리 선택') {
+                playSound(soundSelect.value);
+            }
+        } else {
+            // [소리 꺼짐]
+            soundIcon.src = "off.svg"; // SVG 파일명 변경
+            soundBtn.style.background = "#e4716a"; 
+            
+            if (currentAudio) currentAudio.pause();
+        }
+    });
 
     // 💡 볼륨 슬라이더 이벤트
     const volumeSlider = document.getElementById('volumeSlider');
     volumeSlider.addEventListener('input', (e) => {
-        globalVolume = e.target.value; // 볼륨 값 업데이트 (0.0 ~ 1.0)
+        globalVolume = e.target.value; 
         
-        // 현재 재생 중인 오디오가 있다면 즉시 볼륨 반영
         if (currentAudio) {
             currentAudio.volume = globalVolume;
         }
-  // 만약 볼륨이 0이면 음소거 아이콘으로 변경 (UX 옵션)
+
+        // 볼륨 0일 때 아이콘 변경 로직
         if(globalVolume == 0) {
-             soundBtn.innerText = "off.svg";
+             soundIcon.src = "off.svg"; // 0이면 꺼진 아이콘
         } else if(isSoundOn) {
-             soundBtn.innerText = "on.svg";
+             soundIcon.src = "on.svg";  // 소리가 켜져있으면 켜진 아이콘
         }
-       
     });
 
 </script>
