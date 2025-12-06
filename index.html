@@ -1043,8 +1043,11 @@ width: 100vw !important;
         // 볼륨 0일 때 아이콘 변경 로직
         if(globalVolume == 0) {
              soundIcon.src = "off.svg"; // 0이면 꺼진 아이콘
+             soundBtn.style.background = "#e4716a"; 
+            
         } else if(isSoundOn) {
              soundIcon.src = "on.svg";  // 소리가 켜져있으면 켜진 아이콘
+             soundBtn.style.background = "rgb(240, 240, 240)";
         }
     });
 
