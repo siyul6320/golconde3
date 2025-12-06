@@ -132,16 +132,25 @@
       font-size: 16px;
       background-color: rgb(240, 240, 240);
       border-radius: 50%;
+      cursor: pointer;
       width: 34px;
       height: 32px;
-      right: -1px;
+      right: -0.8px;
       top: 50%;
       transform: translateY(-50%);
       pointer-events: auto;
-      display: flex;
       justify-content: center;
       align-items: center;
     }
+    .sound-icom {
+      width: 35px; 
+      display: block; 
+      position: relative;
+      left: 50%;
+      transform: translateX(-50%);
+      top: -2.2px;
+      }
+
     .sound-btn:hover { background-color: rgb(230, 230, 230); }
 
     /* 🔊 [NEW] 볼륨 슬라이더 스타일 */
@@ -988,28 +997,34 @@ width: 100vw !important;
         }
     }
 
-    const soundSelect = document.getElementById('soundSelect');
-    soundSelect.addEventListener('change', (e) => {
-        if (e.target.value !== 'spring') {
-            playSound(e.target.value);
-        }
-    });
+const soundSelect = document.getElementById('soundSelect');
+soundSelect.addEventListener('change', (e) => {
+if (e.target.value !== 'spring') { // '소리 선택' 옵션이 아닐 때만
+playSound(e.target.value);
+}
+});
 
-    const soundBtn = document.getElementById('soundBtn');
-    soundBtn.addEventListener('click', () => {
-        isSoundOn = !isSoundOn;
-        if (isSoundOn) {
-            soundBtn.innerText = "🔈";
-            soundBtn.style.background = "rgb(240, 240, 240)"; 
-            if (soundSelect.value && soundSelect.value !== '소리 선택') {
-                playSound(soundSelect.value);
-            }
-        } else {
-            soundBtn.innerText = "🔇";
-            soundBtn.style.background = "#e4716a"; 
-            if (currentAudio) currentAudio.pause();
-        }
-    });
+// 소리 on/off 버튼 이벤트
+const soundBtn = document.getElementById('soundBtn');
+soundBtn.addEventListener('click', () => {
+isSoundOn = !isSoundOn;
+if (isSoundOn) {
+soundlcon.src = "on.svg";
+soundBtn.style.background = "rgb(240, 240, 240)";
+// 현재 선택된 소리 재생
+if (soundSelect.value !== 'spring') {
+playSound(soundSelect.value);
+}
+} else {
+soundlcon.src = "off.svg";
+soundBtn.style.background = "#e4716a";
+// 소리 정지
+if (currentAudio) {
+currentAudio.pause();
+}
+}
+});
+
 
     // 💡 볼륨 슬라이더 이벤트
     const volumeSlider = document.getElementById('volumeSlider');
@@ -1020,13 +1035,13 @@ width: 100vw !important;
         if (currentAudio) {
             currentAudio.volume = globalVolume;
         }
-
-        // 만약 볼륨이 0이면 음소거 아이콘으로 변경 (UX 옵션)
+  // 만약 볼륨이 0이면 음소거 아이콘으로 변경 (UX 옵션)
         if(globalVolume == 0) {
-             soundBtn.innerText = "🔇";
+             soundBtn.innerText = "off.svg";
         } else if(isSoundOn) {
-             soundBtn.innerText = "🔈";
+             soundBtn.innerText = "on.svg";
         }
+       
     });
 
 </script>
