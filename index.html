@@ -143,11 +143,13 @@
       align-items: center;
     }
 
-    #soundIcon {
-  width: 20px;  /* 아이콘 크기 조절 */
-  height: 20px;
-  pointer-events: none; /* 이미지 클릭 시에도 버튼 이벤트가 발생하도록 */
-  display: block;
+   .sound-icon {
+width: 35px; 
+display: block;
+position: relative;
+left: 50%;
+transform: translateX(-50%);
+top: -2.2px;
 }
     .sound-btn:hover { background-color: rgb(230, 230, 230); }
 
