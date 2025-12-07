@@ -779,7 +779,7 @@ width: 100vw !important;
     }
 
     // ==========================================
-    // ⚙️ [Engine] 낙하 로직 및 이벤트
+    // ⚙️ [Engine] 낙하 로직
     // ==========================================
     
     themeSelect.addEventListener('change', (e) => {
@@ -789,62 +789,104 @@ width: 100vw !important;
         }
     });
 
-    const config = { columnCount: 8, rowGap: 200, baseSpeed: 0.8 };
-    const drops = [];
+    // [수정됨] 레이어별 개별 설정 (0: 맨 뒤, 1: 중간, 2: 맨 앞)
+    const layerConfigs = [
+        // Layer 0
+        { 
+            columnCount: 15,  // 가로 개수 (숫자가 클수록 가로 간격이 좁아짐)
+            rowGap: 140,      // 세로 간격 (픽셀 단위, 숫자가 클수록 세로 간격이 넓어짐)
+            speed: 0.1,       // 속도
+            size: 12          // 아이콘 크기
+        },
+        // Layer 1
+        { 
+            columnCount: 10, 
+            rowGap: 210, 
+            speed: 0.3, 
+            size: 20 
+        },
+        // Layer 2
+        { 
+            columnCount: 6,
+            rowGap: 300,
+            speed: 0.4, 
+            size: 30 
+        }
+    ];
+
+    const drops = []; // 빈 배열 초기화
 
     class Drop {
-        constructor(colIndex, rowIndex, columnWidth, totalRows, layer) {
-            this.layer = layer;
-            let speedMultiplier = 1.0;
-            if (layer === 2) {
-                this.size = 30; this.zIndex = 2; this.offsetX = 0; this.offsetY = 0; speedMultiplier = 1.0;
-            } else if (layer === 1) {
-                this.size = 20; this.zIndex = 1; this.offsetX = columnWidth / 2; this.offsetY = config.rowGap / 2; speedMultiplier = 0.6;
-            } else {
-                this.size = 12; this.zIndex = 0; this.offsetX = columnWidth / 3; this.offsetY = config.rowGap / 3; speedMultiplier = 0.3;
-            }
-            this.speed = config.baseSpeed * speedMultiplier;
-            this.rowGap = config.rowGap;
-            this.totalRows = totalRows;
-            this.x = (colIndex * columnWidth) + (columnWidth / 2) - (this.size / 2) + this.offsetX;
-            let baseY = rowIndex * this.rowGap;
-            if (colIndex % 2 !== 0) baseY += (this.rowGap / 2);
-            this.y = baseY - 200 + this.offsetY;
-        }
+            constructor(colIndex, rowIndex, columnWidth, totalRows, layer) {
+                this.layer = layer;
+                
+                const myConfig = layerConfigs[layer]; 
 
-        update() {
-            if (!isRunning) return;
-            this.y += this.speed;
-            const patternHeight = this.totalRows * this.rowGap;
-            const threshold = canvas.height + 150;
-            if (this.y > threshold) {
-                this.y -= patternHeight;
-            }
-        }
+                this.size = myConfig.size;
+                this.speed = myConfig.speed;
+                this.rowGap = myConfig.rowGap;
+                this.totalRows = totalRows;
 
-        draw() {
-            const drawFunc = themeDrawFunctions[currentTheme];
-            if (drawFunc) {
-                drawFunc(ctx, this.x, this.y, this.size);
-            }
-        }
-    }
+                if (layer === 2) {
+                    this.zIndex = 3; this.offsetX = 0; this.offsetY = 0;
+                } else if (layer === 1) {
+                    this.zIndex = 1; this.offsetX = columnWidth / 2; this.offsetY = this.rowGap / 2;
+                } else {
+                    this.zIndex = 0; this.offsetX = columnWidth / 3; this.offsetY = this.rowGap / 3;
+                }
 
-    function init() {
-        drops.length = 0;
-        const rowsNeeded = Math.ceil(canvas.height / config.rowGap) + 3;
-        for (let layer = 0; layer < 3; layer++) {
-            let layerColCount;
-            if (layer === 0) layerColCount = 20;
-            else layerColCount = config.columnCount;
-            const currentColumnWidth = canvas.width / layerColCount;
-            for (let col = 0; col < layerColCount; col++) {
-                for (let row = 0; row < rowsNeeded; row++) {
-                    drops.push(new Drop(col, row, currentColumnWidth, rowsNeeded, layer));
+                // X 좌표 계산
+                this.x = (colIndex * columnWidth) + (columnWidth / 2) - (this.size / 2) + this.offsetX;
+                
+                // Y 좌표 계산
+                let baseY = rowIndex * this.rowGap;
+                
+                // 홀수 열은 반칸 내림
+                if (colIndex % 2 !== 0) baseY += (this.rowGap / 2);
+                
+                this.y = baseY - 200 + this.offsetY;
+            }
+
+            update() {
+                if (!isRunning) return;
+                this.y += this.speed;
+                
+                // [수정] 전체 패턴 높이 계산 시 내 레이어의 rowGap을 사용
+                const patternHeight = this.totalRows * this.rowGap;
+                
+                // 화면 밖으로 나가면 위로 재배치하는 기준점
+                const threshold = canvas.height + 150;
+                
+                if (this.y > threshold) {
+                    this.y -= patternHeight;
+                }
+            }
+
+            draw() {
+                const drawFunc = themeDrawFunctions[currentTheme];
+                if (drawFunc) {
+                    drawFunc(ctx, this.x, this.y, this.size);
                 }
             }
         }
-    }
+
+    function init() {
+            drops.length = 0;
+
+            // 0번부터 2번 레이어까지 반복
+            for (let layer = 0; layer < 3; layer++) {
+                
+                const conf = layerConfigs[layer]; 
+                const rowsNeeded = Math.ceil(canvas.height / conf.rowGap) + 3;
+                const currentColumnWidth = canvas.width / conf.columnCount;
+
+                for (let col = 0; col < conf.columnCount; col++) {
+                    for (let row = 0; row < rowsNeeded; row++) {
+                        drops.push(new Drop(col, row, currentColumnWidth, rowsNeeded, layer));
+                    }
+                }
+            }
+        }
 
     function animate() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
